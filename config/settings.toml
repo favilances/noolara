@@ -1,0 +1,17 @@
+[server]
+host = "0.0.0.0"
+port = 8080
+workers = 4
+
+[mongodb]
+uri = "mongodb://127.0.0.1:27017"
+db = "noolara"
+
+[cors]
+allow_origin = "*"
+
+[security]
+max_payload_bytes = 1048576
+allowed_hosts = ["127.0.0.1", "localhost"]
+expose_detailed_errors = false
+enable_hsts = false

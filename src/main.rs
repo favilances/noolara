@@ -6,7 +6,8 @@ use crate::config::AppConfig;
 use crate::server::{run_server, SERVER_CODE};
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let config = AppConfig::from_env();
+    env_logger::init();
+    let config = AppConfig::load()?;
     println!(
         r#"
  _   _             _                 
@@ -17,8 +18,9 @@ async fn main() -> std::io::Result<()> {
 
     Server {SERVER_CODE}
     Listening on {}:{}
+    Max payload {} bytes
 "#,
-        config.host, config.port
+        config.host, config.port, config.max_payload_bytes
     );
     run_server(config).await
 }

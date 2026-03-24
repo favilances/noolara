@@ -1,6 +1,6 @@
 use actix_web::{get, web, HttpResponse, Responder};
+use mongodb::{bson::doc, Client};
 use serde::Serialize;
-use sqlx::MySqlPool;
 
 #[derive(Serialize)]
 struct PingResponse {
@@ -19,15 +19,23 @@ pub async fn ra() -> impl Responder {
     })
 }
 
-#[get("/db-ping")]
-pub async fn db_ping(pool: web::Data<MySqlPool>) -> impl Responder {
-    match sqlx::query_scalar::<_, i32>("SELECT 1")
-        .fetch_one(&**pool)
+#[get("/mongo-ping")]
+pub async fn mongo_ping(
+    mongo_client: web::Data<Client>,
+    config: web::Data<crate::config::AppConfig>,
+) -> impl Responder {
+    match mongo_client
+        .database(&config.mongo_db)
+        .run_command(doc! { "ping": 1 })
         .await
     {
-        Ok(_) => HttpResponse::Ok().json(PingResponse { status: "db_ok" }),
+        Ok(_) => HttpResponse::Ok().json(PingResponse { status: "mongo_ok" }),
         Err(err) => {
-            HttpResponse::InternalServerError().body(format!("db_error: {}", err))
+            if config.expose_detailed_errors {
+                HttpResponse::InternalServerError().body(format!("mongo_error: {}", err))
+            } else {
+                HttpResponse::InternalServerError().body("mongo_error")
+            }
         }
     }
 }
